@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .todo-list {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .task {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+            position: relative;
+        }
+
+        .status {
+            width: 100px;
+        }
+
+        .content {
+            flex: 1;
+            cursor: pointer;
+            max-width: 250px;
+            /* 最大宽度 */
+            white-space: normal;
+            /* 自动换行 */
+            word-wrap: break-word;
+            /* 换行时断开长单词 */
+        }
+
+        .delete {
+            cursor: pointer;
+            display: none;
+            position: absolute;
+            right: 0;
+        }
+
+        .task:hover .delete {
+            display: inline;
+        }
+
+        .filter-count {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="todo-list">
+        <input type="text" id="newTask" placeholder="Add a new task" onkeydown="addTask(event)">
+        <div>
+            <div>
+                <input type="radio" name="filter" value="all" checked onclick="filterTasks('all')"> All
+                <input type="radio" name="filter" value="todo" onclick="filterTasks('todo')"> To Do
+                <input type="radio" name="filter" value="inProgress" onclick="filterTasks('inProgress')"> In Progress
+                <input type="radio" name="filter" value="done" onclick="filterTasks('done')"> Done
+            </div>
+            <div id="filterCounts" class="filter-count">
+                Total: <span id="totalTasks">0</span>
+                To Do: <span id="toDoCount">0</span>
+                In Progress: <span id="inProgressCount">0</span>
+                Done: <span id="doneCount">0</span>
+            </div>
+            <div id="tasks">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const tasks = [];
+        let filterStatus = "all";
+
+        function addTask(event) {
+            if (event.key === "Enter") {
+                const taskText = document.getElementById("newTask").value;
+                if (taskText.trim() === "") {
+                    return;
+                }
+
+                const task = {
+                    status: "todo",
+                    content: taskText
+                };
+
+                tasks.push(task);
+                document.getElementById("newTask").value = "";
+                renderTasks();
+            }
+        }
+
+        function editTask(index) {
+            const contentDiv = document.getElementById(`content-${index}`);
+            contentDiv.setAttribute("contenteditable", true);
+            contentDiv.focus();
+            contentDiv.addEventListener("blur", () => {
+                contentDiv.setAttribute("contenteditable", false);
+                tasks[index].content = contentDiv.textContent;
+                renderTasks();
+            });
+        }
+
+        function deleteTask(index) {
+            tasks.splice(index, 1);
+            renderTasks();
+        }
+
+        function filterTasks(status) {
+            filterStatus = status;
+            renderTasks();
+        }
+
+        function renderTasks() {
+            let toDoCount = 0;
+            let inProgressCount = 0;
+            let doneCount = 0;
+
+            const tasksDiv = document.getElementById("tasks");
+            tasksDiv.innerHTML = "";
+
+            for (let i = 0; i < tasks.length; i++) {
+                const task = tasks[i];
+
+                if (filterStatus === "all" || task.status === filterStatus) {
+                    const taskDiv = document.createElement("div");
+                    taskDiv.classList.add("task");
+
+                    const statusDiv = document.createElement("div");
+                    statusDiv.classList.add("status");
+                    statusDiv.innerHTML = `
+            <select onchange="changeStatus(${i}, this)">
+              <option value="todo" ${task.status === "todo" ? "selected" : ""}>To Do</option>
+              <option value="inProgress" ${task.status === "inProgress" ? "selected" : ""}>In Progress</option>
+              <option value="done" ${task.status === "done" ? "selected" : ""}>Done</option>
+            </select>
+          `;
+
+                    const contentDiv = document.createElement("div");
+                    contentDiv.classList.add("content");
+                    contentDiv.textContent = task.content;
+                    contentDiv.id = `content-${i}`;
+                    contentDiv.addEventListener("dblclick", () => editTask(i));
+
+                    const deleteDiv = document.createElement("div");
+                    deleteDiv.classList.add("delete");
+                    deleteDiv.innerHTML = "❌";
+                    deleteDiv.addEventListener("click", () => deleteTask(i));
+                    deleteDiv.addEventListener("mouseenter", () => deleteDiv.style.display = "inline");
+                    deleteDiv.addEventListener("mouseleave", () => deleteDiv.style.display = "none");
+
+                    taskDiv.appendChild(statusDiv);
+                    taskDiv.appendChild(contentDiv);
+                    taskDiv.appendChild(deleteDiv);
+                    tasksDiv.appendChild(taskDiv);
+
+                    if (task.status === "todo") {
+                        toDoCount++;
+                    } else if (task.status === "inProgress") {
+                        inProgressCount++;
+                    } else if (task.status === "done") {
+                        doneCount++;
+                    }
+                }
+            }
+
+            const totalTasks = tasks.length;
+            document.getElementById("totalTasks").textContent = totalTasks;
+            document.getElementById("toDoCount").textContent = toDoCount;
+            document.getElementById("inProgressCount").textContent = inProgressCount;
+            document.getElementById("doneCount").textContent = doneCount;
+        }
+
+        function changeStatus(index, select) {
+            tasks[index].status = select.value;
+            renderTasks();
+        }
+
+        renderTasks();
+    </script>
+</body>
+
+</html>
