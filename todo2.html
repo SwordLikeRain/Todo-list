@@ -93,11 +93,31 @@
 
     <script>
         const lists = [
-            {
-                name: "Default List",
-                tasks: []
-            }
-        ];
+                {
+                    name: "Default List",
+                    tasks: [{
+                        status: "todo",
+                        content: taskText
+                    },
+                    {
+                        status: "todo",
+                        content: taskText
+                    }
+                    ]
+                },
+                {
+                    name: "Default List",
+                    tasks: [{
+                        status: "todo",
+                        content: taskText
+                    },
+                    {
+                        status: "todo",
+                        content: taskText
+                    }
+                    ]
+                },
+            ];
 
         let currentListIndex = 0;
         let filterStatus = "all";
