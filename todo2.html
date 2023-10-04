@@ -179,7 +179,7 @@
             <div class="list-selector">
                 <select id="listSelect" onchange="changeList(event)"></select>
                 <button class="add-list" onclick="createNewList()">添加新列表</button>
-                <span id="listName" ondblclick="editListName()"></span>
+                <button class="edit-list" onclick="editListName()">编辑列表名</button>
                 <button class="delete-list" onclick="deleteCurrentList()">删除列表</button>
             </div>
             <div class="status-selector">
@@ -236,35 +236,21 @@
         }
 
         function editListName() {
-            const listName = document.getElementById("listName");
-            const curName = listName.innerHTML;
-            listName.setAttribute("contenteditable", true);
-            listName.focus();
+            const curName = lists[currentListIndex].name;
+            const newListName = prompt("Enter the name for the new list:", curName);
 
-            listName.addEventListener("keydown", (event) => {
-                if (event.key === "Enter") {
-                    // 阻止默认 Enter 键行为，以免换行
-                    event.preventDefault();
-                    listName.blur(); // 触发 blur 事件，结束编辑
-                }
-            });
-            listName.addEventListener("blur", () => {
-                listName.innerHTML = listName.innerHTML.replace(/<div><br><\/div>/g, '');
-                listName.setAttribute("contenteditable", false);
-                if(listName.innerHTML.trim() === "") {
-                    alert("新的名称不能为空");
-                    listName.innerHTML = curName;
-                    return;
-                }
-                deleteDataFromDB(db, storeName, curName)
-                    .then(() => {
-                        lists[currentListIndex].name = listName.textContent;
-                        renderLists();
-                    })
-                    .catch((error) => {
-                        alert("编辑失败, 与数据库通信错误");
-                    });
-            });
+            if (newListName === null || newListName.trim() === "") {
+                alert("列表名不合法");
+                return;
+            }
+            deleteDataFromDB(db, storeName, curName)
+                .then(() => {
+                    lists[currentListIndex].name = newListName;
+                    renderLists();
+                })
+                .catch((error) => {
+                    alert("编辑失败, 与数据库通信错误");
+                });
         }
 
         function changeList(event) {
@@ -343,7 +329,6 @@
                 }
                 listSelect.appendChild(option);
             }
-            document.getElementById("listName").innerHTML = lists[currentListIndex].name;
             renderTasks();
         }
 
