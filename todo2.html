@@ -28,7 +28,6 @@
         }
 
         .delete-list {
-            flex: 0.2;
             margin-left: 5px;
             font-size: 16px;
         }
@@ -36,10 +35,8 @@
         .new
         .task {
             display: flex;
-            align-items: center;
             margin: 5px 0;
-            position: relative;
-            height: 3vh; /* 设置所需的高度，可以根据需要进行调整 */
+            height: 3vh;
         }
 
         .status {
@@ -119,7 +116,10 @@
         }
         .select-box {
             font-size: 16px;
+            margin-right: 1px;
             background-color: #dcefe9;
+            height: 3vh;
+            width: 80%;
         }
 
         .option {
@@ -145,22 +145,8 @@
             margin-right: 10px;
             font-size: 16px;
         }
-        #listName {
-            margin-right: 10px;
+        .edit-list {
             font-size: 16px;
-            display: inline-block;
-            align-items: flex-start;
-            justify-content: flex-start;
-            border: 1px solid rgba(0, 0, 0, 0.5);
-            padding: 5px;
-            border-radius: 3px;
-            max-height: 3vh;
-            max-width: 15%;
-            width: 15%;
-            overflow: hidden;
-            word-wrap: break-word;
-            white-space: nowrap;
-            text-align: left;
         }
     </style>
 </head>
@@ -195,7 +181,7 @@
     </div>
 
     <script>
-        const storeName = "lists";
+        const storeName = "ToDoLists";
         let lists = [
             {
                 name: "Default List",
@@ -208,7 +194,7 @@
         
         openDB(storeName)
             .then((newDB) => {
-                db = newDB
+                console.log("数据创建成功");
             })
             .catch((error) => {
                 console.error("数据库打开失败: " + error);
@@ -354,25 +340,25 @@
 
             const currentTaskList = lists[currentListIndex].tasks;
 
+            let seq = 1;
             for (let i = 0; i < currentTaskList.length; i++) {
                 const task = currentTaskList[i];
-
                 if (filterStatus === "all" || task.status === filterStatus) {
                     const taskDiv = document.createElement("div");
                     taskDiv.classList.add("task");
 
                     const seqDiv = document.createElement("span");
                     seqDiv.style.width = "10%";
-                    seqDiv.innerHTML = `${i}`;
+                    seqDiv.style.marginRight = "1px";
+                    seqDiv.innerHTML = `${seq}`;
 
                     const statusDiv = document.createElement("div");
                     statusDiv.classList.add("status");
-                    statusDiv.style.width = "30%";
                     statusDiv.innerHTML = `
                         <select onchange="changeStatus(${i}, this)" class="select-box">
-                            <option value="todo" class="option" ${task.status === "todo" ? "selected" : ""}>To Do</option>
-                            <option value="inProgress" class="option" ${task.status === "inProgress" ? "selected" : ""}>In Progress</option>
-                            <option value="done" class="option" ${task.status === "done" ? "selected" : ""}>Done</option>
+                            <option value="todo" class="option" ${task.status === "todo" ? "selected" : ""}>未完成</option>
+                            <option value="inProgress" class="option" ${task.status === "inProgress" ? "selected" : ""}>执行中</option>
+                            <option value="done" class="option" ${task.status === "done" ? "selected" : ""}>已完成</option>
                         </select>
                     `;
 
@@ -381,6 +367,7 @@
                     // contentDiv.style.width = "65%";
                     contentDiv.style.textAlign = "left";
                     contentDiv.style.maxWidth = "55%";
+                    contentDiv.style.marginRight = "1px";
                     // contentDiv.style.wordWrap = "break-word";
                     // contentDiv.style.overflow = "auto";
                     contentDiv.innerHTML = task.content;
@@ -400,7 +387,7 @@
                     taskDiv.appendChild(contentDiv);
                     taskDiv.appendChild(deleteDiv);
                     tasksDiv.appendChild(taskDiv);
-
+                    seq++;
                 }
                 if (task.status === "todo") {
                     toDoCount++;
@@ -438,13 +425,14 @@
                     window.mozIndexedDB ||
                     window.webkitIndexedDB ||
                     window.msIndexedDB;
-                let db;
+                let newDb;
                 // 打开数据库，若没有则会创建
                 const request = indexedDB.open(dbName, version);
                 // 数据库打开成功回调
                 request.onsuccess = function (event) {
-                    db = event.target.result; // 数据库对象
-                    getAllData(db, storeName)
+                    newDb = event.target.result; // 数据库对象
+                    db = newDb;
+                    getAllData(newDb, storeName)
                         .then((contents) => {
                             lists = contents
                             console.log("初始化数据成功")
@@ -453,7 +441,7 @@
                         .catch((error) => {
                             console.log("初始化数据错误")
                         })
-                    resolve(db);
+                    resolve(newDb);
                 };
                 // 数据库打开失败的回调
                 request.onerror = function (event) {
@@ -463,17 +451,21 @@
                 request.onupgradeneeded = function (event) {
                     // 数据库创建或升级的时候会触发
                     console.log("onupgradeneeded");
-                    db = event.target.result; // 数据库对象
+                    newDb = event.target.result; // 数据库对象
                     var objectStore;
                     // 创建存储库
-                    objectStore = db.createObjectStore(storeName, {
+                    objectStore = newDb.createObjectStore(storeName, {
                         keyPath: "name", // 这是主键
                         // autoIncrement: true // 实现自增
                     });
                     // 创建索引，在后面查询数据的时候可以根据索引查
                     objectStore.createIndex("tasksIndex", "tasks", { unique: false });
-                    resolve(db);
-                    renderLists()
+                    event.target.transaction.oncomplete = function () {
+                        console.log("Database upgrade transaction complete.");
+                        db = newDb
+                        renderLists()
+                        resolve(newDb); // 数据库升级完成后才 resolve
+                    };
                 };
             });
         }
