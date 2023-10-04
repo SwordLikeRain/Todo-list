@@ -8,26 +8,29 @@
         }
 
         .todo-list {
-            max-width: 400px;
-            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            /* align-items: center; */
+            /* justify-content: center; */
+            height: 100%; /* 设置高度，可根据需要调整 */
+            text-align: center; /* 对齐文本内容 */
+            background-color:rgba(35, 118, 191, 0.14)
         }
 
         .list-selector {
             display: flex;
-            margin: 10px 0;
-        }
-
-        .list-selector select {
-            flex: 1;
-        }
-
-        .list-selector input {
-            flex: 1;
+            font-size: 16px;
+            margin: 1vh auto;
+            /* display: block; */
+            width: 50%;
+            max-height: 4vh;
+            justify-content: center; /* 水平居中排列子组件 */
         }
 
         .delete-list {
             flex: 0.2;
             margin-left: 5px;
+            font-size: 16px;
         }
 
         .new
@@ -36,6 +39,7 @@
             align-items: center;
             margin: 5px 0;
             position: relative;
+            height: 3vh; /* 设置所需的高度，可以根据需要进行调整 */
         }
 
         .status {
@@ -45,7 +49,7 @@
         .content {
             flex: 1;
             cursor: pointer;
-            max-width: 250px;
+            /* max-width: 250px; */
             white-space: normal;
             word-wrap: break-word;
         }
@@ -53,80 +57,167 @@
         .delete {
             cursor: pointer;
             display: none;
-            position: absolute;
-            right: 0;
+            /* position: absolute; */
+            /* right: 0; */
         }
-
+        .task {
+           /* height: 3vh; */
+           align-items: center;
+        }
         .task:hover .delete {
             display: inline;
         }
 
         .filter-count {
-            margin-top: 10px;
+            /* margin-top: 10px;
+            height: 3vh; */
+            display: flex;
+            justify-content: center;
+            background-color: #3498db;
+            /* margin-top: 10px; */
+            /* margin-bottom: 10px; */
+        }
+        .filter-text {
+            /* background-color: #3498db; */
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            /* margin: 5px; */
+            cursor: default;
+        }
+        .status-selector {
+            margin-bottom: 1vh;
+        }
+        .filter-button:hover {
+            background-color: #2980b9;
+        }
+        .bottom {
+            background-color:rgb(144, 211, 255);
+            display: flex;
+            justify-content: center;
+        }
+        #tasks {
+            display: flex;
+            overflow: auto;
+            height: 76vh;
+            border: 1px solid #00000056;
+            padding: 5px;
+            flex-direction: column;
+            justify-content: flex-start;
+            width: 30%;
+        }
+        .task {
+            width: 95%;
+            display: flex;
+            justify-content: flex-start;
+            /* align-items: flex-start; */
+            font-size: 18px;
+            border: 1px solid #00000030;
+            padding: 5px;
+            background-color: #76d1f5;
+            /* background-color: #FFB6C1; */
+        }
+        .select-box {
+            font-size: 16px;
+            background-color: #dcefe9;
+        }
+
+        .option {
+            font-size: 16px;
+            background-color: #fcfce4;
+        }
+        #newTask {
+            width: 50%;
+            font-size: 20px;
+            padding: 1vh;
+            margin: 1vh auto; /* 水平居中 */
+            display: block; /* 将其设置为块级元素以占据整行 */
+        }
+        #listSelect {
+            width: 20%;
+            font-size: 16px; /* 可根据需要调整字体大小 */
+            margin-right: 10px;
+            justify-content: center;
+        }
+        .add-list {
+            /* width: 20%; */
+            /* margin: 1vh auto; */
+            margin-right: 10px;
+            font-size: 16px;
+        }
+        #listName {
+            margin-right: 10px;
+            font-size: 16px;
+            display: inline-block;
+            align-items: flex-start;
+            justify-content: flex-start;
+            border: 1px solid rgba(0, 0, 0, 0.5);
+            padding: 5px;
+            border-radius: 3px;
+            max-height: 3vh;
+            max-width: 15%;
+            width: 15%;
+            overflow: hidden;
+            word-wrap: break-word;
+            white-space: nowrap;
+            text-align: left;
         }
     </style>
 </head>
 
 <body>
     <div class="todo-list">
-        <input type="text" id="newTask" placeholder="Add a new task" onkeydown="addTask(event)">
-        <span id="listName" ondblclick="editListName()"></span>
+        <input type="text" id="newTask" placeholder="加入新待办, 'Enter'确认" onkeydown="addTask(event)">
+        <div id="filterCounts" class="filter-count">
+            <span class="filter-text">当前列表统计信息</span>
+            <span class="filter-text" id="totalTasks"></span>
+            <span class="filter-text" id="toDoCount"></span>
+            <span class="filter-text" id="inProgressCount"></span>
+            <span class="filter-text" id="doneCount"></span>
+        </div>
         <div>
             <div class="list-selector">
                 <select id="listSelect" onchange="changeList(event)"></select>
-                <button class="add-list" onclick="createNewList()">Add New List</button>
-                <button class="delete-list" onclick="deleteCurrentList()">Delete</button>
+                <button class="add-list" onclick="createNewList()">添加新列表</button>
+                <span id="listName" ondblclick="editListName()"></span>
+                <button class="delete-list" onclick="deleteCurrentList()">删除列表</button>
             </div>
-            <input type="radio" name="filter" value="all" checked onclick="filterTasks('all')"> All
-            <input type="radio" name="filter" value="todo" onclick="filterTasks('todo')"> To Do
-            <input type="radio" name="filter" value="inProgress" onclick="filterTasks('inProgress')"> In Progress
-            <input type="radio" name="filter" value="done" onclick="filterTasks('done')"> Done
+            <div class="status-selector">
+                <input type="radio" name="filter" value="all" checked onclick="filterTasks('all')"> 全部
+                <input type="radio" name="filter" value="todo" onclick="filterTasks('todo')"> 未完成
+                <input type="radio" name="filter" value="inProgress" onclick="filterTasks('inProgress')"> 执行中
+                <input type="radio" name="filter" value="done" onclick="filterTasks('done')"> 已完成
+            </div>
         </div>
-        <div id="filterCounts" class="filter-count">
-            Total: <span id="totalTasks">0</span>
-            To Do: <span id="toDoCount">0</span>
-            In Progress: <span id="inProgressCount">0</span>
-            Done: <span id="doneCount">0</span>
+        <div class="bottom">
+            <div id="tasks"></div>
         </div>
-        <div id="tasks"></div>
     </div>
 
     <script>
-        const lists = [
-                {
-                    name: "Default List",
-                    tasks: [{
-                        status: "todo",
-                        content: taskText
-                    },
-                    {
-                        status: "todo",
-                        content: taskText
-                    }
-                    ]
-                },
-                {
-                    name: "Default List",
-                    tasks: [{
-                        status: "todo",
-                        content: taskText
-                    },
-                    {
-                        status: "todo",
-                        content: taskText
-                    }
-                    ]
-                },
-            ];
-
+        const storeName = "lists";
+        let lists = [
+            {
+                name: "Default List",
+                tasks: []
+            }
+        ];
         let currentListIndex = 0;
         let filterStatus = "all";
+        let db = null;
+        
+        openDB(storeName)
+            .then((newDB) => {
+                db = newDB
+            })
+            .catch((error) => {
+                console.error("数据库打开失败: " + error);
+            });
 
         function createNewList() {
             const newListName = prompt("Enter the name for the new list:");
 
             if (newListName === null) {
-                // User clicked Cancel or closed the prompt
                 return;
             }
 
@@ -146,12 +237,33 @@
 
         function editListName() {
             const listName = document.getElementById("listName");
+            const curName = listName.innerHTML;
             listName.setAttribute("contenteditable", true);
             listName.focus();
+
+            listName.addEventListener("keydown", (event) => {
+                if (event.key === "Enter") {
+                    // 阻止默认 Enter 键行为，以免换行
+                    event.preventDefault();
+                    listName.blur(); // 触发 blur 事件，结束编辑
+                }
+            });
             listName.addEventListener("blur", () => {
+                listName.innerHTML = listName.innerHTML.replace(/<div><br><\/div>/g, '');
                 listName.setAttribute("contenteditable", false);
-                lists[currentListIndex].name = listName.innerHTML;
-                renderLists();
+                if(listName.innerHTML.trim() === "") {
+                    alert("新的名称不能为空");
+                    listName.innerHTML = curName;
+                    return;
+                }
+                deleteDataFromDB(db, storeName, curName)
+                    .then(() => {
+                        lists[currentListIndex].name = listName.textContent;
+                        renderLists();
+                    })
+                    .catch((error) => {
+                        alert("编辑失败, 与数据库通信错误");
+                    });
             });
         }
 
@@ -162,9 +274,15 @@
 
         function deleteCurrentList() {
             if (lists.length > 1) {
-                lists.splice(currentListIndex, 1);
-                currentListIndex = lists.length - 1;
-                renderLists();
+                deleteDataFromDB(db, storeName, lists[currentListIndex].name)
+                    .then(() => {
+                        lists.splice(currentListIndex, 1);
+                        currentListIndex = lists.length - 1;
+                        renderLists();
+                    })
+                    .catch(() => {
+                        alert("删除失败, 与数据库通信错误");
+                    });
             }
             else {
                 alert("The last list cannot be deleted.")
@@ -200,6 +318,7 @@
                 lists[currentListIndex].tasks[index].content = taskText;
                 renderTasks();
             });
+            event.stopPropagation(); // 禁止事件冒泡以免删除显示错误
         }
 
         function deleteTask(index) {
@@ -229,6 +348,18 @@
         }
 
         function renderTasks() {
+            for (const list of lists) {
+                // 调用 addListData 函数，传递数据库连接和当前列表数据
+                addListData(db, storeName, list)
+                    .then((message) => {
+                        console.log(message);
+                        // 数据写入/更新成功
+                    })
+                    .catch((error) => {
+                        console.error(error);
+                        // 数据写入/更新失败
+                    });
+            }
             let toDoCount = 0;
             let inProgressCount = 0;
             let doneCount = 0;
@@ -245,29 +376,41 @@
                     const taskDiv = document.createElement("div");
                     taskDiv.classList.add("task");
 
+                    const seqDiv = document.createElement("span");
+                    seqDiv.style.width = "10%";
+                    seqDiv.innerHTML = `${i}`;
+
                     const statusDiv = document.createElement("div");
                     statusDiv.classList.add("status");
+                    statusDiv.style.width = "30%";
                     statusDiv.innerHTML = `
-                        <select onchange="changeStatus(${i}, this)">
-                        <option value="todo" ${task.status === "todo" ? "selected" : ""}>To Do</option>
-                        <option value="inProgress" ${task.status === "inProgress" ? "selected" : ""}>In Progress</option>
-                        <option value="done" ${task.status === "done" ? "selected" : ""}>Done</option>
+                        <select onchange="changeStatus(${i}, this)" class="select-box">
+                            <option value="todo" class="option" ${task.status === "todo" ? "selected" : ""}>To Do</option>
+                            <option value="inProgress" class="option" ${task.status === "inProgress" ? "selected" : ""}>In Progress</option>
+                            <option value="done" class="option" ${task.status === "done" ? "selected" : ""}>Done</option>
                         </select>
                     `;
 
                     const contentDiv = document.createElement("div");
                     contentDiv.classList.add("content");
+                    // contentDiv.style.width = "65%";
+                    contentDiv.style.textAlign = "left";
+                    contentDiv.style.maxWidth = "55%";
+                    // contentDiv.style.wordWrap = "break-word";
+                    // contentDiv.style.overflow = "auto";
                     contentDiv.innerHTML = task.content;
                     contentDiv.id = `content-${i}`;
                     contentDiv.addEventListener("dblclick", () => editTask(i));
 
                     const deleteDiv = document.createElement("div");
                     deleteDiv.classList.add("delete");
+                    deleteDiv.style.width = "5%"
                     deleteDiv.innerHTML = "❌";
                     deleteDiv.addEventListener("click", () => deleteTask(i));
                     deleteDiv.addEventListener("mouseenter", () => deleteDiv.style.display = "block");
                     deleteDiv.addEventListener("mouseleave", () => deleteDiv.style.display = "none");
 
+                    taskDiv.appendChild(seqDiv);
                     taskDiv.appendChild(statusDiv);
                     taskDiv.appendChild(contentDiv);
                     taskDiv.appendChild(deleteDiv);
@@ -284,10 +427,10 @@
             }
 
             const totalTasks = currentTaskList.length;
-            document.getElementById("totalTasks").textContent = totalTasks;
-            document.getElementById("toDoCount").textContent = toDoCount;
-            document.getElementById("inProgressCount").textContent = inProgressCount;
-            document.getElementById("doneCount").textContent = doneCount;
+            document.getElementById("totalTasks").textContent = "全部: "+ totalTasks;
+            document.getElementById("toDoCount").textContent = "未完成: " + toDoCount;
+            document.getElementById("inProgressCount").textContent = "执行中: " + inProgressCount;
+            document.getElementById("doneCount").textContent = "已完成: " + doneCount;
         }
 
         function changeStatus(index, select) {
@@ -295,8 +438,126 @@
             renderTasks();
         }
 
-        
-        renderLists();
+        /**
+         * 打开数据库
+         * @param {object} dbName 数据库的名字
+         * @param {string} storeName 仓库名称
+         * @param {string} version 数据库的版本
+         * @return {object} 该函数会返回一个数据库实例
+         */
+        function openDB(dbName, version = 1) {
+            return new Promise((resolve, reject) => {
+                //  兼容浏览器
+                var indexedDB =
+                    window.indexedDB ||
+                    window.mozIndexedDB ||
+                    window.webkitIndexedDB ||
+                    window.msIndexedDB;
+                let db;
+                // 打开数据库，若没有则会创建
+                const request = indexedDB.open(dbName, version);
+                // 数据库打开成功回调
+                request.onsuccess = function (event) {
+                    db = event.target.result; // 数据库对象
+                    getAllData(db, storeName)
+                        .then((contents) => {
+                            lists = contents
+                            console.log("初始化数据成功")
+                            renderLists()
+                        })
+                        .catch((error) => {
+                            console.log("初始化数据错误")
+                        })
+                    resolve(db);
+                };
+                // 数据库打开失败的回调
+                request.onerror = function (event) {
+                    console.log("数据库打开报错");
+                };
+                // 数据库有更新时候的回调
+                request.onupgradeneeded = function (event) {
+                    // 数据库创建或升级的时候会触发
+                    console.log("onupgradeneeded");
+                    db = event.target.result; // 数据库对象
+                    var objectStore;
+                    // 创建存储库
+                    objectStore = db.createObjectStore(storeName, {
+                        keyPath: "name", // 这是主键
+                        // autoIncrement: true // 实现自增
+                    });
+                    // 创建索引，在后面查询数据的时候可以根据索引查
+                    objectStore.createIndex("tasksIndex", "tasks", { unique: false });
+                    resolve(db);
+                    renderLists()
+                };
+            });
+        }
+
+        /**
+         * 新增数据
+         * @param {object} db 数据库实例
+         * @param {string} storeName 仓库名称
+         * @param {string} data 数据
+         */
+        function addListData(db, storeName, data) {
+            return new Promise((resolve, reject) => {
+                var request = db
+                    .transaction([storeName], "readwrite") // 事务对象 指定表格名称和操作模式（"只读"或"读写"）
+                    .objectStore(storeName) // 仓库对象
+                    .put(data);
+
+                request.onsuccess = () => {
+                    resolve("Data written/updated successfully");
+                };
+
+                request.onerror = (event) => {
+                    reject("Data write/update failed: " + event.target.error);
+                };
+            })
+        }
+
+        function getAllData(db, storeName) {
+            return new Promise((resolve, reject) => {
+                //不传参数, 表示全部获取
+                const request = db
+                    .transaction([storeName])
+                    .objectStore(storeName)
+                    .getAll();
+
+                request.onerror = (event) => {
+                    reject("Transaction to get all data failed: " + event.target.error);
+                };
+
+                request.onsuccess = (event) => {
+                    resolve(event.target.result);
+                };
+            })
+        }
+
+        /**
+         * 通过主键删除数据
+         * @param {object} db 数据库实例
+         * @param {string} storeName 仓库名称
+         * @param {object} id 主键值
+         */
+        function deleteDataFromDB(db, storeName, id) {
+            return new Promise((resolve, reject) => {
+                var request = db
+                    .transaction([storeName], "readwrite")
+                    .objectStore(storeName)
+                    .delete(id);
+
+                request.onsuccess = function () {
+                    console.log("数据删除成功");
+                    resolve(event.target.result);
+                };
+
+                request.onerror = function () {
+                    console.log("数据删除失败");
+                    reject(event.target.error);
+                };
+            })
+        }
     </script>
 </body>
 
