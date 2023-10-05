@@ -1,0 +1,161 @@
+body {
+    font-family: Arial, sans-serif;
+}
+
+.todo-list {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    text-align: center;
+    background-color: rgba(35, 118, 191, 0.14)
+}
+
+.add-task {
+    width: 50%;
+    font-size: 20px;
+    padding: 1vh;
+    margin: 1vh auto;
+    /* 水平居中 */
+    display: block;
+    /* 将其设置为块级元素以占据整行 */
+}
+
+.filter-panel {
+    /* margin-top: 10px;
+    height: 3vh; */
+    display: flex;
+    justify-content: center;
+    background-color: #3498db;
+    /* margin-top: 10px; */
+    /* margin-bottom: 10px; */
+}
+
+.filter-text {
+    /* background-color: #3498db; */
+    color: #fff;
+    border: none;
+    padding: 5px 10px;
+    /* margin: 5px; */
+    cursor: default;
+}
+
+.list-panel {
+    display: flex;
+    font-size: 16px;
+    margin: 1vh auto;
+    /* display: block; */
+    width: 50%;
+    max-height: 4vh;
+    justify-content: center;
+    /* 水平居中排列子组件 */
+}
+
+.select-list {
+    width: 20%;
+    font-size: 16px;
+    /* 可根据需要调整字体大小 */
+    margin-right: 10px;
+    justify-content: center;
+}
+
+.add-list {
+    /* width: 20%; */
+    /* margin: 1vh auto; */
+    margin-right: 10px;
+    font-size: 16px;
+}
+
+.edit-list {
+    font-size: 16px;
+}
+
+.delete-list {
+    margin-left: 5px;
+    font-size: 16px;
+}
+
+.status-selector {
+    margin-bottom: 1vh;
+}
+
+.edge-bottom {
+    background-color: rgb(144, 211, 255);
+    display: flex;
+    justify-content: center;
+}
+
+.tasks {
+    display: flex;
+    overflow: auto;
+    height: 76vh;
+    border: 1px solid #00000056;
+    padding: 5px;
+    flex-direction: column;
+    justify-content: flex-start;
+    width: 30%;
+}
+
+.task-panel {
+    width: 95%;
+    display: flex;
+    justify-content: flex-start;
+    /* align-items: flex-start; */
+    font-size: 18px;
+    border: 1px solid #00000030;
+    padding: 5px;
+    background-color: #76d1f5;
+    align-items: center;
+    /* background-color: #FFB6C1; */
+}
+
+.new .task-panel {
+    display: flex;
+    margin: 5px 0;
+    height: 3vh;
+}
+
+.task-seq {
+    width: 10%;
+    margin-right: 1px;
+    cursor: default;
+}
+
+.task-status {
+    width: 100px;
+}
+
+.task-status-select-box {
+    font-size: 16px;
+    margin-right: 1px;
+    background-color: #dcefe9;
+    height: 3vh;
+    width: 80%;
+    cursor: pointer;
+}
+
+.task-status-select-option {
+    font-size: 16px;
+    background-color: #fcfce4;
+}
+
+.task-content {
+    flex: 1;
+    cursor: pointer;
+    max-width: 55%;
+    white-space: normal;
+    word-wrap: break-word;
+    text-align: left;
+    margin-right: 1px;
+}
+
+.task-delete {
+    cursor: pointer;
+    display: none;
+    width: 5%;
+    /* position: absolute; */
+    /* right: 0; */
+}
+
+.task-panel:hover .task-delete {
+    display: inline;
+}
