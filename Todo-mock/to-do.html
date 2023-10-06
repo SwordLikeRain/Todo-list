@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+    <div class="todo-list">
+        <input type="text" class="add-task" id="addTask" placeholder="加入新待办, Enter 以确认" onkeydown="addTask(event)">
+        <div id="filterCounts" class="filter-panel">
+            <span class="filter-text">当前列表统计信息</span>
+            <span class="filter-text" id="totalTasks"></span>
+            <span class="filter-text" id="toDoCount"></span>
+            <span class="filter-text" id="inProgressCount"></span>
+            <span class="filter-text" id="doneCount"></span>
+        </div>
+        <div>
+            <div class="list-panel">
+                <select class="select-list" id="listSelect" onchange="switchCurrentList(event)"></select>
+                <button class="add-list" onclick="createNewList()">添加新列表</button>
+                <button class="edit-list" onclick="editCurrentListName()">编辑列表名</button>
+                <button class="delete-list" onclick="deleteCurrentList()">删除列表</button>
+            </div>
+            <div class="status-selector">
+                <input type="radio" name="filter" value="all" checked onclick="filterTasks('all')"> 全部
+                <input type="radio" name="filter" value="todo" onclick="filterTasks('todo')"> 未完成
+                <input type="radio" name="filter" value="inProgress" onclick="filterTasks('inProgress')"> 执行中
+                <input type="radio" name="filter" value="done" onclick="filterTasks('done')"> 已完成
+            </div>
+        </div>
+        <div class="edge-bottom">
+            <div id="tasks" class="tasks"></div>
+        </div>
+    </div>
+    <script src="script-mock.js"></script>
+</body>
+
+</html>

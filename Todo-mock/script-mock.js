@@ -1,3 +1,4 @@
+/*=======================初始化相关==========================*/
 const storeName = "ToDoLists";
 let lists = [
     {
@@ -9,14 +10,52 @@ let currentListIndex = 0;
 let filterStatus = "all";
 let database = null;
 
-openDB(storeName)
+// 使用Promise确保 mock.js 和 axios.js 加载完成
+loadScript("https://cdn.bootcdn.net/ajax/libs/Mock.js/1.0.0/mock-min.js")
     .then(() => {
-        console.log("openDB: 数据库创建成功");
+        console.log("Mock.js is loaded");
+
+        return loadScript("https://cdn.bootcdn.net/ajax/libs/axios/1.3.6/axios.js");
+    })
+    .then(() => {
+        console.log("axios is loaded");
+
+        configureMock();
+
+        // 二选一, 分别对应测试无数据库初始化和有数据库初始化的情况
+        if (Math.floor(Math.random() * 100) % 2 === 1) {
+            console.log("使用默认数据, 模拟建表");
+            renderLists();
+        } else {
+            getAllDataFromDB(database, storeName)
+                .then((contents) => {
+                    lists = contents;
+                    console.log("初始化数据成功");
+                    renderLists();
+                })
+                .catch((error) => {
+                    console.error("初始化数据错误" + error);
+                });
+        }
     })
     .catch((error) => {
-        console.error("openDB: 数据库打开失败: " + error);
+        console.error("Error loading libraries: ", error);
     });
 
+/**
+ * 加载外部JavaScript脚本文件。
+ * @param {string} src - 要加载的脚本文件的URL。
+ * @returns {Promise} - 返回一个Promise，当脚本成功加载时解析，加载失败时拒绝。
+ */
+function loadScript(src) {
+    return new Promise((resolve, reject) => {
+        const script = document.createElement("script");
+        script.src = src;
+        script.onload = resolve;
+        script.onerror = reject;
+        document.body.appendChild(script);
+    });
+}
 
 /*=================待办列表(List)相关的函数===================*/
 
@@ -126,17 +165,20 @@ function editTask(index, event) {
     contentDiv.setAttribute("contenteditable", true);
     contentDiv.focus();
 
-    contentDiv.addEventListener("blur", () => {
+    function handleBlur() {
         contentDiv.setAttribute("contenteditable", false);
         const taskText = contentDiv.innerHTML;
         if (taskText.trim() === "") {
             contentDiv.innerHTML = curContent; // 非法输入, 自动恢复修改前内容
             alert("名称非法, 请重新修改");
-            return;
+        } else {
+            lists[currentListIndex].tasks[index].content = taskText;
+            renderTasks();
         }
-        lists[currentListIndex].tasks[index].content = taskText;
-        renderTasks();
-    });
+        contentDiv.removeEventListener("blur", handleBlur); // 移除监听器
+    }
+
+    contentDiv.addEventListener("blur", handleBlur);
 
     // 禁止事件冒泡以免删除显示错误
     event.stopPropagation();
@@ -154,10 +196,10 @@ function deleteTask(index) {
 /**
  * 修改所选待办事项的状态
  * @param {int} index 所选待办事项的序号
- * @param {object} select 新状态
+ * @param {object} selectElement 新状态
  */
-function changeTaskStatus(index, select) {
-    lists[currentListIndex].tasks[index].status = select.value;
+function changeTaskStatus(index, selectElement) {
+    lists[currentListIndex].tasks[index].status = selectElement.value;
     renderTasks();
 }
 
@@ -252,13 +294,29 @@ function renderTasks() {
                     }>已完成</option>
                 </select>
             `;
+            const selectElement = statusDiv.querySelector("select");
+            switch (task.status) {
+                case "todo":
+                    selectElement.style.backgroundColor = "#ecc55a"; // 设置未完成的背景颜色
+                    break;
+                case "inProgress":
+                    selectElement.style.backgroundColor = "#939afb"; // 设置执行中的背景颜色
+                    break;
+                case "done":
+                    selectElement.style.backgroundColor = "#a9f2a9"; // 设置已完成的背景颜色
+                    break;
+                default:
+                    selectElement.style.backgroundColor = ""; // 默认情况下清除背景颜色
+            }
 
             // 2.4 生成展示事项内容的contentDiv, 绑定了editTask()函数
             const contentDiv = document.createElement("div");
             contentDiv.classList.add("task-content");
             contentDiv.innerHTML = task.content;
             contentDiv.id = `content-${i}`;
-            contentDiv.addEventListener("dblclick", () => editTask(i));
+            contentDiv.addEventListener("dblclick", (event) =>
+                editTask(i, event)
+            );
 
             // 2.5 生成展示删除键的deleteDiv, 绑定了deleteTask()函数, 且会根据鼠标焦点位置更新显示状态
             const deleteDiv = document.createElement("div");
@@ -301,138 +359,113 @@ function renderTasks() {
     document.getElementById("doneCount").textContent = "已完成: " + doneCount;
 }
 
-/*=================IndexedDB数据库(database)相关的函数===================*/
-
+/*=================模拟后端(mock.js)相关的函数===================*/
 /**
- * 打开数据库并进行数据初始化
- * 1. 如果数据库不存在, 则触发更新回调, 建立新库, 用默认数据完成数据初始化
- * 2. 如果数据库已经建立, 获取数据库数据以完成数据初始化
- * 3. 其余则报错, 触发失败回调
- * @param {object} dbName 数据库的名字
- * @param {string} version 数据库的版本
+ * 模拟后端, 提供接口 /api/updateList、/api/getLists和/api/deleteList
+ * 对应函数: updateListToDB()、getAllDataFromDB()和deleteListFromDB()
  */
-function openDB(dbName, version = 1) {
-    return new Promise((resolve, reject) => {
-        //  兼容浏览器
-        var indexedDB =
-        window.indexedDB ||
-        window.mozIndexedDB ||
-        window.webkitIndexedDB ||
-        window.msIndexedDB;
-        let newDb;
-        
-        const request = indexedDB.open(dbName, version);
+function configureMock() {
+    Mock.mock("/api/updateList", "post", (options) => {
+        const postData = JSON.parse(options.body);
 
-        // 数据库打开成功的回调, 在回调中执行剩下的初始化
-        request.onsuccess = function (event) {
-            newDb = event.target.result;
-            database = newDb;
-            getAllDataFromDB(newDb, storeName)
-                .then((contents) => {
-                    lists = contents;
-                    console.log("初始化数据成功");
-                    renderLists();
-                    resolve(newDb);
-                })
-                .catch((error) => {
-                    console.log("初始化数据错误");
-                    reject(error);
-                });
+        const response = {
+            message: "update request received successfully",
+            payload: postData, // 使用请求中的负载数据作为响应的一部分
         };
 
-        // 数据库打开失败的回调
-        request.onerror = function (event) {
-            reject(event.target.error);
+        return response;
+    });
+
+    Mock.mock("/api/getLists", "get", {
+        "list|1-5": [
+            {
+                name: "@title(1,10)",
+                "tasks|0-5": [
+                    {
+                        "status|1": ["todo", "done", "inProgress"],
+                        content: "@ctitle(5, 20)",
+                    },
+                ],
+            },
+        ],
+    });
+
+    Mock.mock("/api/deleteList", "post", (options) => {
+        const postData = JSON.parse(options.body);
+
+        const response = {
+            message: "delete request received successfully",
+            payload: postData, // 使用请求中的负载数据作为响应的一部分
         };
 
-        // 数据库更新时的回调, 在回调中执行剩下的初始化
-        request.onupgradeneeded = function (event) {
-            console.log("数据库初始化: 数据库更新");
-            newDb = event.target.result;
-            var objectStore;
-            
-            objectStore = newDb.createObjectStore(storeName, {
-                keyPath: "name", // 主键
-            });
-            // 创建索引，在后面查询数据的时候可以根据索引查
-            objectStore.createIndex("tasksIndex", "tasks", {unique: false});
-            event.target.transaction.oncomplete = function () {
-                console.log("数据库初始化: 数据库更新完成");
-                database = newDb;
-                renderLists();
-                resolve(newDb); // 数据库升级完成后才 resolve
-            };
-        };
+        return response;
     });
 }
 
+/*=================前端请求(axios)相关的函数===================*/
 /**
- * 新增/更新list数据
+ * 新增/更新list数据(使用axios测试)
  * @param {object} database 数据库实例
  * @param {string} storeName 仓库名称
  * @param {dict} data list数据, 字典格式
  */
-function updateListToDB(database, storeName, data) {
+function updateListToDB(database, storeName, sendData) {
     return new Promise((resolve, reject) => {
-        const request = database
-            .transaction([storeName], "readwrite")  // 事务对象 指定表格名称和操作模式（"只读"或"读写"）
-            .objectStore(storeName)  // 仓库对象
-            .put(data);  // put代表如果不存在则新增, 否则更新
-
-        request.onsuccess = () => {
+        axios({
+            method: "post",
+            url: "/api/updateList",
+            data: sendData,
+        })
+        .then((response) => {
+            const responseData = response.data;
+            console.log(responseData);
             resolve("Data written/updated successfully");
-        };
-
-        request.onerror = (event) => {
-            reject("Data write/update failed: " + event.target.error);
-        };
+        })
+        .catch((error) => {
+            reject("Data write/update failed: " + error);
+        });
     });
 }
 
 /**
- * 获取所有的列表及待办数据
+ * 获取所有的列表及待办数据(使用axios测试)
  * @param {object} database 数据库实例
  * @param {string} storeName 仓库名称
  * @return {lists} 返回一个类似于lists的字典数组
  */
 function getAllDataFromDB(database, storeName) {
     return new Promise((resolve, reject) => {
-        const request = database
-            .transaction([storeName])
-            .objectStore(storeName)
-            .getAll();
-
-        request.onsuccess = (event) => {
-            resolve(event.target.result);
-        };
-
-        request.onerror = (event) => {
-            reject("Transaction to get all data failed: " + event.target.error);
-        };
+        axios.get("/api/getLists")
+        .then((response) => {
+            // resolve(Object.values(response.data));
+            resolve(response.data.list);
+        })
+        .catch((error) => {
+            reject("Transaction to get all data failed: " + error);
+        });
     });
 }
 
 /**
- * 通过主键删除数据
+ * 通过主键删除数据(使用axios测试)
  * @param {object} database 数据库实例
  * @param {string} storeName 仓库名称
  * @param {string} id 主键值, 即要删除的列表名
  */
 function deleteListFromDB(database, storeName, id) {
     return new Promise((resolve, reject) => {
-        var request = database
-            .transaction([storeName], "readwrite")
-            .objectStore(storeName)
-            .delete(id);
-
-        request.onsuccess = function (event) {
-            console.log("数据删除成功");
-            resolve(event.target.result);
-        };
-
-        request.onerror = function (event) {
-            console.log("数据删除失败");
-            reject(event.target.error);
-        };
+        axios({
+            method: "post",
+            url: "/api/deleteList",
+            data: id,
+        })
+        .then((response) => {
+            const responseData = response.data;
+            console.log(responseData);
+            resolve("Data deleted successfully");
+        })
+        .catch((error) => {
+            reject("Data deleted failed: " + error);
+        });
     });
 }

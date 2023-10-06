@@ -17,6 +17,7 @@ body {
     margin: 1vh auto;
     /* 水平居中 */
     display: block;
+    cursor: text;
     /* 将其设置为块级元素以占据整行 */
 }
 
@@ -131,6 +132,21 @@ body {
     height: 3vh;
     width: 80%;
     cursor: pointer;
+}
+
+/* 为"未完成"选项设置背景颜色 */
+.task-status-select-option[value="todo"] {
+    background-color: #ecc55a;
+}
+
+/* 为"执行中"选项设置背景颜色 */
+.task-status-select-option[value="inProgress"] {
+    background-color: #939afb;
+}
+
+/* 为"已完成"选项设置背景颜色 */
+.task-status-select-option[value="done"] {
+    background-color: #a9f2a9;
 }
 
 .task-status-select-option {
